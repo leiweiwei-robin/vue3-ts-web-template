@@ -1,0 +1,72 @@
+# Default values for elan-standard-web.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  name: elan-standard-web
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: "<tag>"
+
+imagePullSecrets: [{"name": "default-secret"}]
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: false
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext: {}
+
+securityContext: {}
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: chart-example.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+
+virtualService:
+  enabled: false
+
+resources:
+  limits:
+    cpu: 100m
+    memory: 128Mi
+  requests:
+    cpu: 50m
+    memory: 128Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+# frontend.conf
+istioGateways: ['gateway-public']
+elanDomainNames: []
+userService: "ssc-frontapi:8000"
+elanBackendService: "ssc-frontapi:8000"
+backendCommonService: "ssc-frontapi"
+elanMobileService: "elan-mobile"
+# elanAppService: "elan-app:8000"
+elanWebService: "elan-web"
+mallElanBackendService: "mall-elan-backend"
+
+commonConfigurations:
+  image: {}

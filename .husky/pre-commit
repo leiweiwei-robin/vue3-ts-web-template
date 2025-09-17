@@ -1,0 +1,7 @@
+#!/bin/sh
+
+# 执行 lint-staged 中配置的任务
+npx lint-staged
+
+# 检查编译，防止部署编译失败
+npx vue-tsc --noEmit

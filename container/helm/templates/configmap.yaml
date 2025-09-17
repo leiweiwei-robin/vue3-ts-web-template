@@ -1,0 +1,228 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "elan-standard-web.fullname" . }}
+  labels:
+    {{- include "elan-standard-web.labels" . | nindent 4 }}
+data:
+  frontend.conf: |
+    upstream user_service {
+      server {{ .Values.userService }} fail_timeout=30 max_fails=3;
+    }
+
+    upstream elan_backend_service {
+      server {{ .Values.elanBackendService }} fail_timeout=30 max_fails=3;
+    }
+
+    upstream backend_common_service {
+      server {{ .Values.backendCommonService }}:8000 fail_timeout=30 max_fails=3;
+    }
+
+    upstream elan_mobile_service {
+      server {{ .Values.elanMobileService }} fail_timeout=30 max_fails=3;
+    }
+
+    # upstream elan_app_service {
+    #   server {{ .Values.elanAppService }} fail_timeout=30 max_fails=3;
+    # }
+
+    upstream elan_web_service {
+      server {{ .Values.elanWebService }} fail_timeout=30 max_fails=3;
+    }
+
+    upstream mall_elan_backend_service {
+      server {{ .Values.mallElanBackendService }} fail_timeout=30 max_fails=3;
+    }
+
+    {{- if .Values.standard_dashboard }}   
+    upstream standard-dashboard {
+      server elan-standard-dashboard:8000 fail_timeout=30 max_fails=3;
+    }
+    {{- end }}
+
+    log_format  hwmain  '"$remote_addr" "$request_time" "$upstream_response_time" "$upstream_addr" "$upstream_status"  "$remote_user [$time_local]" "$request" "$status" "$body_bytes_sent" "$http_referer" "$http_user_agent" "$http_x_forwarded_for"';
+
+    server {
+      listen 80 default_server;
+      server_name _;
+      charset utf-8;
+
+      add_header Access-Control-Allow-Origin *;
+
+      root /frontend;
+      index index.html index.htm;
+      try_files $uri $uri/ /index.html;
+      client_max_body_size  20m;
+
+      gzip on;
+      gzip_disable "msie6";
+      gzip_vary on;
+      gzip_min_length 1k;
+      gzip_proxied any;
+      gzip_comp_level 6;
+      gzip_buffers 16 8k;
+      gzip_http_version 1.1;
+      gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;
+
+      location ^~/elan/ {
+        proxy_http_version 1.1;
+
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Auth-Type elan;
+        proxy_read_timeout 300s;
+        proxy_connect_timeout 300s;
+
+        proxy_pass http://elan_backend_service;
+      }
+
+      location ^~/ssc/ {
+        proxy_http_version 1.1;
+
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Auth-Type elan;
+        proxy_read_timeout 300s;
+        proxy_connect_timeout 300s;
+
+        proxy_pass http://user_service;
+      }
+
+      location ^~/service/ {
+        proxy_http_version 1.1;
+
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Auth-Type elan;
+        proxy_read_timeout 300s;
+        proxy_connect_timeout 300s;
+
+        proxy_pass http://backend_common_service;
+      }
+   
+      location ^~/service/procurement-inventory/openapi/ {
+        proxy_http_version 1.1;
+
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Auth-Type signature;
+        proxy_read_timeout 300s;
+        proxy_connect_timeout 300s;
+
+        proxy_pass http://backend_common_service;
+      }
+
+      location ^~/service/archive/v1/api/factory/sync {
+        proxy_http_version 1.1;
+
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Auth-Type signature;
+        proxy_read_timeout 300s;
+        proxy_connect_timeout 300s;
+
+        proxy_pass http://backend_common_service;
+      }
+
+    {{- if  .Values.dataadapter }} 
+      location ^~/data-adapter {
+        proxy_http_version 1.1;
+
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Auth-Type signature;
+        proxy_read_timeout 300s;
+        proxy_connect_timeout 300s;
+
+        proxy_pass http://data-adapter;
+      }
+    {{- end }}   
+
+  {{- if .Values.standard_dashboard }}   
+      location ^~/standard-dashboard/ {
+        proxy_http_version 1.1;
+
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Auth-Type signature;
+        proxy_read_timeout 300s;
+        proxy_connect_timeout 300s;
+
+        proxy_pass http://standard-dashboard/;
+      }
+    {{- end }}
+
+      location ^~/h5/ {
+        proxy_http_version 1.1;
+
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Auth-Type elan;
+        proxy_read_timeout 300s;
+        proxy_connect_timeout 300s;
+
+        proxy_pass http://elan_mobile_service/;
+      }
+
+      # location ^~/app/ {
+      #   proxy_http_version 1.1;
+
+      #   proxy_set_header Host $host;
+      #   proxy_set_header X-Real-IP $remote_addr;
+      #   proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      #   proxy_set_header X-Auth-Type elan;
+      #   proxy_read_timeout 300s;
+      #   proxy_connect_timeout 300s;
+
+      #   proxy_pass http://elan_app_service/;
+      # }
+
+      location ^~/legacy/ {
+        proxy_http_version 1.1;
+
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Auth-Type elan;
+        proxy_read_timeout 300s;
+        proxy_connect_timeout 300s;
+
+        proxy_pass http://elan_web_service/;
+      }
+
+      location ^~/mall/ {
+        proxy_http_version 1.1;
+
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Auth-Type elan;
+        proxy_read_timeout 300s;
+        proxy_connect_timeout 300s;
+
+        proxy_pass http://mall_elan_backend_service;
+      }
+
+      location ~* \.(png|jpg|jpeg|gif|ico|woff|otf|ttf|eot|svg|txt|pdf|docx?|xlsx?)$ {
+          access_log off;
+          add_header Pragma public;
+          add_header Cache-Control "public";
+          add_header Vary "Accept-Encoding";
+      }
+
+      location ~* \.(js|css)$ {
+          access_log off;
+          add_header Pragma public;
+          add_header Cache-Control "public";
+          add_header Vary "Accept-Encoding";
+      }
+
+    }

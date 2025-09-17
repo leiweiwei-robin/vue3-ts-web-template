@@ -1,0 +1,24 @@
+{{- if .Values.virtualService.enabled -}}
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: {{ include "elan-standard-web.fullname" . }}.{{ .Release.Namespace }}
+  namespace: istio-system
+  labels:
+    {{- include "elan-standard-web.labels" . | nindent 4 }}
+spec:
+  hosts:
+  {{- range .Values.elanDomainNames }}
+  - "{{ . }}"
+  {{- end }}
+  gateways:
+  {{- range .Values.istioGateways }}
+  - {{ . }}
+  {{- end }}
+  http:
+  - route:
+    - destination:
+        host: {{ include "elan-standard-web.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local
+        port:
+          number: {{ .Values.service.port }}
+{{- end }}

@@ -1,0 +1,39 @@
+/* 系统 主颜色 系列 */
+$fl-primary-blue: #4d96ff;
+/* 选中色 */
+$fl-primary-blue-active: #138aff;
+$fl-bg-grey: #eff0f4;
+$fl-error-color: #fe5d56;
+// 适用文字
+$fl-grey-dark: #525f73;
+// 适用按钮
+$fl-grey: #c0c4cf;
+
+$fl-text-black: #222b3c;
+
+/* 系统 pretty color 系列 */
+// G1-适用重要文字、超链接
+$fl-pretty-color-dark: #00af7f;
+// G2-适用按钮
+$fl-pretty-color: #138aff;
+// G5-背景
+$fl-pretty-color-bg: #d9f7ef;
+// G6-浅背景
+$fl-pretty-color-bg-light: #e5f9f3;
+
+$fl-primary: #138aff;
+$fl-primary-hover: #33d2a6;
+$fl-primary-disabled: #b5b8bf;
+
+/* 全局css变量 */
+:root {
+  --fl-pretty-color-dark: #{$fl-pretty-color-dark};
+  --fl-pretty-color: #{$fl-pretty-color};
+  --fl-pretty-color-bg: #{$fl-pretty-color-bg};
+  --fl-pretty-color-bg-light: #{$fl-pretty-color-bg-light};
+  --fl-primary: #{$fl-primary};
+  --fl-primary-hover: #{$fl-primary-hover};
+  --fl-primary-disabled: #{$fl-primary-disabled};
+  --fl-primary-blue: #{$fl-primary-blue};
+  --fl-primary-blue-active: #{$fl-primary-blue-active};
+}

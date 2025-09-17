@@ -1,0 +1,9 @@
+#!/bin/sh
+
+dir=$(cd "$(dirname $0)";pwd | sed 's~/container.*~~g')
+if [[ -e "$dir/container/scripts" ]]; then
+    cd $dir/container/scripts
+    git pull
+else
+    git clone git@git.local.flkj.ai:cicd/scripts.git $dir/container/scripts
+fi
