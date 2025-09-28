@@ -10,7 +10,10 @@ import { defineConfig, loadEnv } from 'vite';
 
 // Configuring Vite: https://cn.vite.dev/config
 export default defineConfig(({ mode }) => {
-  const { VITE_PUBLIC_PATH } = loadEnv(mode, process.cwd(), '') as ImportMetaEnv;
+  // const { VITE_PUBLIC_PATH } = loadEnv(mode, process.cwd(), '') as ImportMetaEnv;
+  // 正确写法（通过 unknown 过渡）
+  const env = loadEnv(mode, process.cwd(), '') as unknown as ImportMetaEnv;
+  const { VITE_PUBLIC_PATH } = env;
   return {
     // 开发或打包构建时用到的公共基础路径
     base: VITE_PUBLIC_PATH,

@@ -1,13 +1,10 @@
 <script setup lang="ts">
-  import type { CSSProperties } from 'vue';
   import type { MenuItem, ShadowMenuItem } from '@/interfaces/common/menus';
   import { getMenuRequest } from '@/apis/common';
   import { DASHBOARD_OPEN_MENU } from '@/constants/storage-keys';
   import { _DashBoardMenu } from '@/interfaces/common/menus';
   import { useMenuStore } from '@/stores/menu';
   import { useRefreshStore } from '@/stores/refresh';
-  import mainHeader from './main-header/index.vue';
-  import MenuLeft from './menu-left/index.vue';
   import type { RouteLocationNormalizedLoadedGeneric } from 'vue-router';
 
   const route = useRoute();
@@ -177,100 +174,11 @@
   function clearCachedRoute(item: ShadowMenuItem) {
     refreshStore.clearCache(item.vueSnapshot?.name as string);
   }
-
-  function closeTab(item: ShadowMenuItem) {
-    if (item.path.indexOf('legacy') === -1) {
-      openMenu.value = openMenu.value.filter(
-        _item => _item.vueSnapshot?.name !== item.vueSnapshot?.name,
-      );
-    } else {
-      const index = openMenu.value.findIndex(_item => _item.url === item.url);
-      if (index > -1) openMenu.value.splice(index, 1);
-    }
-    openMenu.value = [...openMenu.value];
-    if (openMenu.value.length === 0) {
-      refreshStore.CLEAR_KEEPLIST();
-      router.push({
-        name: 'dashboard',
-      });
-      return;
-    }
-    const _menuItem = openMenu.value[openMenu.value.length - 1];
-    currentOpeningMenuIndexing.value = openMenu.value.length - 1;
-    router.push({
-      name: _menuItem.vueSnapshot?.name,
-      query: _menuItem.vueSnapshot?.query,
-      params: _menuItem.vueSnapshot?.params,
-    });
-
-    clearCachedRoute(item);
-    saveOpenMenuToSessionStorage();
-  }
-
-  function closeAllTab() {
-    const shadowList = [...openMenu.value];
-    shadowList.forEach(item => {
-      refreshStore.clearCache(item.vueSnapshot?.name as string);
-    });
-    openMenu.value = [_DashBoardMenu];
-    currentOpeningMenuIndexing.value = 0;
-    router.push({
-      name: 'dashboard',
-    });
-    saveOpenMenuToSessionStorage();
-  }
-
-  const siderStyle = ref<CSSProperties>({
-    textAlign: 'center',
-    backgroundColor: '#fff',
-    width: 64,
-  });
-
-  const headerStyle: CSSProperties = {
-    height: '48px',
-    paddingInline: 0,
-    lineHeight: '0',
-    backgroundColor: '#fff',
-  };
-
-  // 折叠菜单
-  const isCollapsed = ref<boolean>(false);
-  function toggleCollapsed() {
-    isCollapsed.value = !isCollapsed.value;
-    document.body.click();
-  }
 </script>
 
 <template>
   <a-layout v-if="isReady" style="height: 100%">
-    <a-layout-sider :style="siderStyle" :width="isCollapsed ? 0 : 80">
-      <MenuLeft :menu="menus" />
-      <a-tooltip :placement="isCollapsed ? 'topLeft' : 'top'">
-        <template #title>
-          {{ isCollapsed ? '展开菜单栏' : '折叠菜单栏' }}
-        </template>
-        <div
-          class="g-fold-icon"
-          :class="{ collapsed: isCollapsed, 'not-collapsed': !isCollapsed }"
-          @click="toggleCollapsed()"
-        >
-          <fl-icon
-            :name="isCollapsed ? 'icon-shouqicebianlan' : 'icon-zhankaicebianlan'"
-            class="menuIcon"
-          />
-        </div>
-      </a-tooltip>
-    </a-layout-sider>
     <a-layout>
-      <a-layout-header :style="headerStyle" height="48">
-        <mainHeader
-          :open-menu="openMenu"
-          :menus="menus"
-          :current-opening-menu-indexing="currentOpeningMenuIndexing"
-          @close-tab="closeTab"
-          @close-all-tab="closeAllTab"
-        />
-      </a-layout-header>
       <a-layout-content :class="[isDashboard && 'ant-layout-content-dashboard']">
         <router-view v-slot="{ Component }">
           <keep-alive :include="refreshStore.keepList">
